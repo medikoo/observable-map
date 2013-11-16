@@ -12,8 +12,8 @@ var ObservableMap = require('observable-map');
 var map = new ObservableMap([['one', 1], ['two', 2]]);
 
 map.on('change', function (event) {
-  if (event.type === 'set') console.log(Set:", event.key, event.value);
-  else if (event.type === 'delete') console.log(Deleted:", event.key);
+  if (event.type === 'set') console.log("Set:", event.key, event.value);
+  else if (event.type === 'delete') console.log("Deleted:", event.key);
   else if (event.type === 'clear') console.log("Map cleared");
 });
 
@@ -28,8 +28,8 @@ map = ObservableMap([['one', 1], ['two', 2], ['three', 3], ['four', 4]]);
 var filtered = map.filter(function (value) { return value % 2; }); // { one: 1, three: 3 }
 
 filtered.on('change', function (event) {
-  if (event.type === 'set') console.log(Set:", event.key, event.value);
-  else if (event.type === 'delete') console.log(Deleted:", event.key);
+  if (event.type === 'set') console.log("Set:", event.key, event.value);
+  else if (event.type === 'delete') console.log("Deleted:", event.key);
   else if (event.type === 'clear') console.log("Map cleared");
 });
 
@@ -44,8 +44,8 @@ map = ObservableMap([['one', 1], ['two', 2], ['three', 3], ['four', 4]]);
 var mapped = map.map(function (num) { return num * 2; }); // { one: 2, two: 4, three: 6, four: 8 }
 
 mapped.on('change', function (event) {
-  if (event.type === 'set') console.log(Set:", event.key, event.value);
-  else if (event.type === 'delete') console.log(Deleted:", event.key);
+  if (event.type === 'set') console.log("Set:", event.key, event.value);
+  else if (event.type === 'delete') console.log("Deleted:", event.key);
   else if (event.type === 'clear') console.log("Map cleared");
 });
 
@@ -60,7 +60,7 @@ var values = map.toSet(); // { 1, 2, 3, 4 }
 
 values.on('change', function (event) {
   if (event.type === 'add') console.log("Add:", event.value);
-  else if (event.type === 'delete') console.log(Deleted:", event.value);
+  else if (event.type === 'delete') console.log("Deleted:", event.value);
   else if (event.type === 'clear') console.log("Set cleared");
 });
 
@@ -73,7 +73,7 @@ map = ObservableMap([['one', 1], ['two', 2], ['three', 3], ['four', 4]]);
 var keys = map.toSet('key'); // { 'one', 'two', 'three', 'four' }
 keys.on('change', function (event) {
   if (event.type === 'add') console.log("Add:", event.value);
-  else if (event.type === 'delete') console.log(Deleted:", event.value);
+  else if (event.type === 'delete') console.log("Deleted:", event.value);
   else if (event.type === 'clear') console.log("Set cleared");
 });
 
