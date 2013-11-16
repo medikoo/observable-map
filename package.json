@@ -1,10 +1,10 @@
 {
-  "name": "observable-set",
+  "name": "observable-map",
   "version": "0.0.0",
-  "description": "Configure observable set collections",
+  "description": "Configure observable map collections",
   "author": "Mariusz Nowak <medyk@medikoo.com> (http://www.medikoo.com/)",
   "keywords": [
-    "set",
+    "map",
     "collection",
     "observable",
     "emitter",
@@ -14,7 +14,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/medikoo/observable-set.git"
+    "url": "git://github.com/medikoo/observable-map.git"
   },
   "scripts": {
     "test": "node ./node_modules/tad/bin/tad"
