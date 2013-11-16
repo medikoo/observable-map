@@ -66,7 +66,7 @@ values.on('change', function (event) {
 
 map.add('five', 5);  // Added: 5
 map.delete('three'); // Deleted: 3
-map.clear();         // set cleared
+map.clear();         // Set cleared
 
 // Keys
 map = ObservableMap([['one', 1], ['two', 2], ['three', 3], ['four', 4]]);
@@ -79,7 +79,7 @@ keys.on('change', function (event) {
 
 map.add('five', 5);  // Added: five
 map.delete('three'); // Deleted: three
-map.clear();         // set cleared
+map.clear();         // Set cleared
 ```
 
 ### Installation
