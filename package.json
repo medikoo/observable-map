@@ -1,0 +1,37 @@
+{
+  "name": "observable-set",
+  "version": "0.0.0",
+  "description": "Configure observable set collections",
+  "author": "Mariusz Nowak <medyk@medikoo.com> (http://www.medikoo.com/)",
+  "keywords": [
+    "set",
+    "collection",
+    "observable",
+    "emitter",
+    "events",
+    "list",
+    "array"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/medikoo/observable-set.git"
+  },
+  "scripts": {
+    "test": "node ./node_modules/tad/bin/tad"
+  },
+  "dependencies": {
+    "d": "git://github.com/medikoo/d.git",
+    "es5-ext": "git://github.com/medikoo/es5-ext.git",
+    "es6-iterator": "git://github.com/medikoo/es6-iterator.git",
+    "es6-map": "git://github.com/medikoo/es6-map.git",
+    "es6-set": "git://github.com/medikoo/es6-set.git",
+    "event-emitter": "git://github.com/medikoo/event-emitter.git",
+    "memoizee": "git://github.com/medikoo/memoize.git",
+    "observable-set": "git://github.com/medikoo/observable-set.git",
+    "observable-value": "git://github.com/medikoo/observable-value.git"
+  },
+  "devDependencies": {
+    "tad": "~0.1.20"
+  },
+  "license": "MIT"
+}
