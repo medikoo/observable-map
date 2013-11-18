@@ -15,7 +15,7 @@ module.exports = memoize(function (Constructor) {
 	var Observable, clear, del, set;
 
 	validFunction(Constructor);
-	if (!isMap(new Constructor())) {
+	if (!isMap(Constructor.prototype)) {
 		throw new TypeError(Constructor + " is not map constructor");
 	}
 	Observable = function (/* iterable, comparator */) {

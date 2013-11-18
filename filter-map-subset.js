@@ -24,12 +24,12 @@ require('memoizee/lib/ext/ref-counter');
 require('memoizee/lib/ext/dispose');
 
 module.exports = memoize(function (ObservableMap) {
-	var ReadOnly = createReadOnly(validFunction(ObservableMap));
-
+	var ReadOnly;
 	validFunction(ObservableMap);
-	if (!isObservableMap(new ObservableMap())) {
+	if (!isObservableMap(ObservableMap.prototype)) {
 		throw new TypeError(ObservableMap + " is not observable map constructor");
 	}
+	ReadOnly = createReadOnly(ObservableMap);
 	defineProperties(ObservableMap.prototype, memMethods({
 		filter: d(function (callbackFn/*, thisArg*/) {
 			var result, thisArg, cb, disposed, listener;

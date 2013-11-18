@@ -15,7 +15,7 @@ module.exports = memoize(function (Constructor) {
 	var ReadOnly, descs;
 
 	validFunction(Constructor);
-	if (!isMap(new Constructor())) {
+	if (!isMap(Constructor.prototype)) {
 		throw new TypeError(Constructor + " is not map constructor");
 	}
 	ReadOnly = function (/* iterable, comparator */) {

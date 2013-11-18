@@ -20,7 +20,7 @@ require('memoizee/lib/ext/dispose');
 
 module.exports = memoize(function (ObservableMap) {
 	validFunction(ObservableMap);
-	if (!isObservableMap(new ObservableMap())) {
+	if (!isObservableMap(ObservableMap.prototype)) {
 		throw new TypeError(ObservableMap + " is not observable set constructor");
 	}
 	defineProperties(ObservableMap.prototype, memMethods({
