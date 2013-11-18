@@ -3,7 +3,7 @@
 var validFunction = require('es5-ext/function/valid-function')
   , d             = require('d/d')
   , memoize       = require('memoizee/lib/regular')
-  , isMap         = require('es6-map/is-map')
+  , validMap      = require('es6-map/valid-map')
 
   , create = Object.create, defineProperties = Object.defineProperties
   , getDescriptor = Object.getOwnPropertyDescriptor
@@ -15,9 +15,8 @@ module.exports = memoize(function (Constructor) {
 	var ReadOnly, descs;
 
 	validFunction(Constructor);
-	if (!isMap(Constructor.prototype)) {
-		throw new TypeError(Constructor + " is not map constructor");
-	}
+	validMap(Constructor.prototype);
+
 	ReadOnly = function (/* iterable, comparator */) {
 		if (!(this instanceof ReadOnly)) {
 			return new ReadOnly(arguments[0], arguments[1]);

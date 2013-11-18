@@ -1,20 +1,20 @@
 'use strict';
 
-var aFrom           = require('es5-ext/array/from')
-  , invoke          = require('es5-ext/function/invoke')
-  , validFunction   = require('es5-ext/function/valid-function')
-  , eq              = require('es5-ext/object/eq')
-  , callable        = require('es5-ext/object/valid-callable')
-  , value           = require('es5-ext/object/valid-value')
-  , d               = require('d/d')
-  , memoize         = require('memoizee/lib/regular')
-  , memMethods      = require('memoizee/lib/d')(memoize)
-  , isIterable      = require('es6-iterator/is-iterable')
-  , Set             = require('es6-set')
-  , isSet           = require('es6-set/is-set')
-  , isObservableSet = require('observable-set/is-observable-set')
-  , createReadOnly  = require('./create-read-only')
-  , isObservableMap = require('./is-observable-map')
+var aFrom              = require('es5-ext/array/from')
+  , invoke             = require('es5-ext/function/invoke')
+  , validFunction      = require('es5-ext/function/valid-function')
+  , eq                 = require('es5-ext/object/eq')
+  , callable           = require('es5-ext/object/valid-callable')
+  , value              = require('es5-ext/object/valid-value')
+  , d                  = require('d/d')
+  , memoize            = require('memoizee/lib/regular')
+  , memMethods         = require('memoizee/lib/d')(memoize)
+  , isIterable         = require('es6-iterator/is-iterable')
+  , Set                = require('es6-set')
+  , isSet              = require('es6-set/is-set')
+  , isObservableSet    = require('observable-set/is-observable-set')
+  , createReadOnly     = require('./create-read-only')
+  , validObservableMap = require('./valid-observable-map')
 
   , bind = Function.prototype.bind
   , defineProperties = Object.defineProperties
@@ -25,11 +25,11 @@ require('memoizee/lib/ext/dispose');
 
 module.exports = memoize(function (ObservableMap) {
 	var ReadOnly;
+
 	validFunction(ObservableMap);
-	if (!isObservableMap(ObservableMap.prototype)) {
-		throw new TypeError(ObservableMap + " is not observable map constructor");
-	}
+	validObservableMap(ObservableMap.prototype);
 	ReadOnly = createReadOnly(ObservableMap);
+
 	defineProperties(ObservableMap.prototype, memMethods({
 		filter: d(function (callbackFn/*, thisArg*/) {
 			var result, thisArg, cb, disposed, listener;

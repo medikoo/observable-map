@@ -1,16 +1,17 @@
 'use strict';
 
-var eIndexOf       = require('es5-ext/array/#/e-index-of')
-  , i              = require('es5-ext/function/i')
-  , invoke         = require('es5-ext/function/invoke')
-  , validFunction  = require('es5-ext/function/valid-function')
-  , d              = require('d/d')
-  , memoize        = require('memoizee/lib/regular')
-  , memMethods     = require('memoizee/lib/d')(memoize)
-  , ReadOnly       = require('observable-set/create-read-only')(
+var eIndexOf           = require('es5-ext/array/#/e-index-of')
+  , i                  = require('es5-ext/function/i')
+  , invoke             = require('es5-ext/function/invoke')
+  , validFunction      = require('es5-ext/function/valid-function')
+  , d                  = require('d/d')
+  , memoize            = require('memoizee/lib/regular')
+  , memMethods         = require('memoizee/lib/d')(memoize)
+  , ReadOnly           = require('observable-set/create-read-only')(
 	require('observable-set')
 )
-  , isObservableMap = require('./valid-observable-map')
+  , validObservableMap = require('./valid-observable-map')
+
   , defineProperties = Object.defineProperties
   , invokeDispose = invoke('_dispose');
 
@@ -20,9 +21,8 @@ require('memoizee/lib/ext/dispose');
 
 module.exports = memoize(function (ObservableMap) {
 	validFunction(ObservableMap);
-	if (!isObservableMap(ObservableMap.prototype)) {
-		throw new TypeError(ObservableMap + " is not observable set constructor");
-	}
+	validObservableMap(ObservableMap.prototype);
+
 	defineProperties(ObservableMap.prototype, memMethods({
 		toSet: d(function (kind) {
 			var result, disposed, listener, registry, inClear;

@@ -6,7 +6,7 @@ var validFunction      = require('es5-ext/function/valid-function')
   , d                  = require('d/d')
   , ee                 = require('event-emitter')
   , memoize            = require('memoizee/lib/regular')
-  , isMap              = require('es6-map/is-map')
+  , validMap           = require('es6-map/valid-map')
   , isObservableSymbol = require('observable-value/symbol-is-observable')
 
   , defineProperty = Object.defineProperty;
@@ -15,9 +15,8 @@ module.exports = memoize(function (Constructor) {
 	var Observable, clear, del, set;
 
 	validFunction(Constructor);
-	if (!isMap(Constructor.prototype)) {
-		throw new TypeError(Constructor + " is not map constructor");
-	}
+	validMap(Constructor.prototype);
+
 	Observable = function (/* iterable, comparator */) {
 		if (!(this instanceof Observable)) {
 			return new Observable(arguments[0], arguments[1]);
