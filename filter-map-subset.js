@@ -177,13 +177,33 @@ module.exports = memoize(function (ObservableMap) {
 					values.on('change', valuesListener = function (event) {
 						var type = event.type, changed;
 						if (type === 'add') {
-							if (this.has(event.value)) {
-								result._set(event.value, this.get(event.value));
-							}
-						} else if (type === 'delete') {
+							if (!this.has(event.value)) return;
+							result._set(event.value, this.get(event.value));
+							return;
+						}
+						if (type === 'delete') {
 							if (this.has(event.value)) result._delete(event.value);
-						} else if (type === 'clear') {
+							return;
+						}
+						if (type === 'clear') {
 							result._clear();
+							return;
+						}
+						if (type === 'batch') {
+							if (event.added) {
+								event.added.forEach(function (value) {
+									if (!this.has(value)) return;
+									result.$set(value, this.get(value));
+									changed = true;
+								}, this);
+							}
+							if (event.deleted) {
+								event.deleted.forEach(function (value) {
+									if (!this.has(value)) return;
+									result.$delete(value);
+									changed = true;
+								}, this);
+							}
 						} else {
 							result.forEach(function (value, key) {
 								if (values.has(key)) return;
@@ -195,8 +215,8 @@ module.exports = memoize(function (ObservableMap) {
 								result.$set(key, value);
 								changed = true;
 							});
-							if (changed) result.emit('change', {});
 						}
+						if (changed) result.emit('change', {});
 					}.bind(this));
 				}
 			} else if (isIterable(values)) {
