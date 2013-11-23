@@ -38,40 +38,41 @@ module.exports = memoize(function (ObservableMap) {
 			cb = memoize(bind.call(callbackFn, thisArg), { length: 2 });
 			result = new ReadOnly();
 			this.on('change', listener = function (event) {
-				var type = event.type, changed;
+				var type = event.type;
 				if (type === 'set') {
 					if (cb(event.value, event.key)) result._set(event.key, event.value);
 					else if (result.has(event.key)) result._delete(event.key);
-				} else if (type === 'delete') {
+					return;
+				}
+				if (type === 'delete') {
 					result._delete(event.key);
-				} else if (type === 'clear') {
+					return;
+				}
+				if (type === 'clear') {
 					result._clear();
-				} else {
-					result.forEach(function (value, key) {
-						if (this.has(key)) {
-							if (eq(this.get(key), value)) return;
-							if (cb(value, key)) {
-								result.$set(key, value);
-								changed = true;
-								return;
-							}
-						}
-						result.$delete(key);
-						changed = true;
-					}, this);
-					this.forEach(function (value, key) {
+					return;
+				}
+				result.__onHold__ = true;
+				result.forEach(function (value, key) {
+					if (this.has(key)) {
+						if (eq(this.get(key), value)) return;
 						if (cb(value, key)) {
-							if (result.has(key) && eq(result.get(key), value)) return;
-							result.$set(key, value);
-							changed = true;
+							result._set(key, value);
 							return;
 						}
-						if (!result.has(value)) return;
-						result.$delete(value);
-						changed = true;
-					}, this);
-					if (changed) result.emit('change', {});
-				}
+					}
+					result._delete(key);
+				}, this);
+				this.forEach(function (value, key) {
+					if (cb(value, key)) {
+						if (result.has(key) && eq(result.get(key), value)) return;
+						result._set(key, value);
+						return;
+					}
+					if (!result.has(value)) return;
+					result._delete(value);
+				}, this);
+				result._release_();
 			}.bind(this));
 			this.forEach(function (value, key) {
 				if (cb(value, key)) result.$set(key, value);
@@ -111,27 +112,30 @@ module.exports = memoize(function (ObservableMap) {
 			cb = memoize(bind.call(callbackFn, thisArg), { length: 2 });
 			result = new ReadOnly();
 			this.on('change', listener = function (event) {
-				var type = event.type, changed;
+				var type = event.type;
 				if (type === 'set') {
 					result._set(event.key, cb(event.value, event.key));
-				} else if (type === 'delete') {
-					result._delete(event.key);
-				} else if (type === 'clear') {
-					result._clear();
-				} else {
-					this.forEach(function (value, key) {
-						value = cb(value, key);
-						if (result.has(key) && eq(result.get(key), value)) return;
-						result.$set(key, value);
-						changed = true;
-					});
-					result.forEach(function (value, key) {
-						if (this.has(key)) return;
-						result.$delete(key);
-						changed = true;
-					}, this);
-					if (changed) result.emit('change', {});
+					return;
 				}
+				if (type === 'delete') {
+					result._delete(event.key);
+					return;
+				}
+				if (type === 'clear') {
+					result._clear();
+					return;
+				}
+				result.__onHold__ = true;
+				this.forEach(function (value, key) {
+					value = cb(value, key);
+					if (result.has(key) && eq(result.get(key), value)) return;
+					result._set(key, value);
+				});
+				result.forEach(function (value, key) {
+					if (this.has(key)) return;
+					result._delete(key);
+				}, this);
+				result._release_();
 			}.bind(this));
 			this.forEach(function (value, key) { result.$set(key, cb(value, key)); });
 			defineProperties(result, {
@@ -146,16 +150,15 @@ module.exports = memoize(function (ObservableMap) {
 					result._set(key, nu);
 				}.bind(this)),
 				refreshAll: d(function () {
-					var changed;
+					result.__onHold__ = true;
 					this.forEach(function (value, key) {
 						var old = cb(value, key), nu;
 						cb.clear(value, key);
 						nu = cb(value, key);
 						if (eq(old, nu)) return;
-						result.$set(key, nu);
-						changed = true;
+						result._set(key, nu);
 					}, this);
-					if (changed) result.emit('change', {});
+					result._release_();
 				}.bind(this)),
 				unref: d(function () {
 					if (disposed) return;
@@ -175,7 +178,7 @@ module.exports = memoize(function (ObservableMap) {
 			if (isSet(values)) {
 				if (isObservableSet(values)) {
 					values.on('change', valuesListener = function (event) {
-						var type = event.type, changed;
+						var type = event.type;
 						if (type === 'add') {
 							if (!this.has(event.value)) return;
 							result._set(event.value, this.get(event.value));
@@ -189,34 +192,31 @@ module.exports = memoize(function (ObservableMap) {
 							result._clear();
 							return;
 						}
+						result.__onHold__ = true;
 						if (type === 'batch') {
 							if (event.added) {
 								event.added.forEach(function (value) {
 									if (!this.has(value)) return;
-									result.$set(value, this.get(value));
-									changed = true;
+									result._set(value, this.get(value));
 								}, this);
 							}
 							if (event.deleted) {
 								event.deleted.forEach(function (value) {
 									if (!this.has(value)) return;
-									result.$delete(value);
-									changed = true;
+									result._delete(value);
 								}, this);
 							}
 						} else {
 							result.forEach(function (value, key) {
 								if (values.has(key)) return;
-								result.$delete(key);
-								changed = true;
+								result._delete(key);
 							}.bind(this));
 							this.forEach(function (value, key) {
 								if (values.has(key) && result.has(key)) return;
-								result.$set(key, value);
-								changed = true;
+								result._set(key, value);
 							});
 						}
-						if (changed) result.emit('change', {});
+						result._release_();
 					}.bind(this));
 				}
 			} else if (isIterable(values)) {
@@ -226,31 +226,33 @@ module.exports = memoize(function (ObservableMap) {
 			}
 			result = new ReadOnly();
 			this.on('change', listener = function (event) {
-				var type = event.type, changed;
+				var type = event.type;
 				if (type === 'set') {
 					if (values.has(event.key)) result._set(event.key, event.value);
-				} else if (type === 'delete') {
-					result._delete(event.key);
-				} else if (type === 'clear') {
-					result._clear();
-				} else {
-					result.forEach(function (value, key) {
-						if (this.has(key)) {
-							if (eq(this.get(key), value)) return;
-							result.$set(key, value);
-							changed = true;
-							return;
-						}
-						result.$delete(key);
-						changed = true;
-					}, this);
-					this.forEach(function (value, key) {
-						if (!values.has(key) || result.has(key)) return;
-						result.$set(key, value);
-						changed = true;
-					}, this);
-					if (changed) result.emit('change', {});
+					return;
 				}
+				if (type === 'delete') {
+					result._delete(event.key);
+					return;
+				}
+				if (type === 'clear') {
+					result._clear();
+					return;
+				}
+				result.__onHold__ = true;
+				result.forEach(function (value, key) {
+					if (this.has(key)) {
+						if (eq(this.get(key), value)) return;
+						result._set(key, value);
+						return;
+					}
+					result._delete(key);
+				}, this);
+				this.forEach(function (value, key) {
+					if (!values.has(key) || result.has(key)) return;
+					result._set(key, value);
+				}, this);
+				result._release_();
 			}.bind(this));
 			this.forEach(function (value, key) {
 				if (values.has(key)) result.$set(key, value);
