@@ -54,19 +54,32 @@ module.exports = memoize(function (ObservableMap) {
 						return;
 					}
 					result.__onHold__ = true;
-					inClear = true;
-					registry.clearAll();
-					inClear = false;
-					valid = [];
-					this.forEach(function (value, key) {
-						valid.push(registry(value));
-						if (result.has(value)) return;
-						result._add(value);
-					});
-					result.forEach(function (value) {
-						if (eIndexOf.call(valid, value)) return;
-						result._delete(value);
-					});
+					if (type === 'batch') {
+						if (event.set) {
+							event.set.forEach(function (value) {
+								result._add(registry(value));
+							});
+						}
+						if (event.deleted) {
+							event.deleted.forEach(function (value) {
+								registry.clearRef(value);
+							});
+						}
+					} else {
+						inClear = true;
+						registry.clearAll();
+						inClear = false;
+						valid = [];
+						this.forEach(function (value, key) {
+							valid.push(registry(value));
+							if (result.has(value)) return;
+							result._add(value);
+						});
+						result.forEach(function (value) {
+							if (eIndexOf.call(valid, value)) return;
+							result._delete(value);
+						});
+					}
 					result._release_();
 				});
 			} else {
@@ -85,14 +98,28 @@ module.exports = memoize(function (ObservableMap) {
 						return;
 					}
 					result.__onHold__ = true;
-					this.forEach(function (value, key) {
-						if (result.has(key)) return;
-						result._add(key);
-					});
-					result.forEach(function (value) {
-						if (this.has(value)) return;
-						result._delete(value);
-					}, this);
+					if (type === 'batch') {
+						if (event.set) {
+							event.set.forEach(function (value, key) {
+								result._add(key);
+							});
+						}
+						if (event.deleted) {
+							event.deleted.forEach(function (value, key) {
+								if (event.set && event.set.has(key)) return;
+								result._delete(key);
+							});
+						}
+					} else {
+						this.forEach(function (value, key) {
+							if (result.has(key)) return;
+							result._add(key);
+						});
+						result.forEach(function (value) {
+							if (this.has(value)) return;
+							result._delete(value);
+						}, this);
+					}
 					result._release_();
 				});
 			}

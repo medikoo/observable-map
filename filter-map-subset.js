@@ -53,25 +53,40 @@ module.exports = memoize(function (ObservableMap) {
 					return;
 				}
 				result.__onHold__ = true;
-				result.forEach(function (value, key) {
-					if (this.has(key)) {
-						if (eq(this.get(key), value)) return;
+				if (type === 'batch') {
+					if (event.set) {
+						event.set.forEach(function (value, key) {
+							if (cb(value, key)) result._set(key, value);
+							else result._delete(key);
+						});
+					}
+					if (event.deleted) {
+						event.deleted.forEach(function (value, key) {
+							if (event.set && event.set.has(key)) return;
+							result._delete(key);
+						});
+					}
+				} else {
+					result.forEach(function (value, key) {
+						if (this.has(key)) {
+							if (eq(this.get(key), value)) return;
+							if (cb(value, key)) {
+								result._set(key, value);
+								return;
+							}
+						}
+						result._delete(key);
+					}, this);
+					this.forEach(function (value, key) {
 						if (cb(value, key)) {
+							if (result.has(key) && eq(result.get(key), value)) return;
 							result._set(key, value);
 							return;
 						}
-					}
-					result._delete(key);
-				}, this);
-				this.forEach(function (value, key) {
-					if (cb(value, key)) {
-						if (result.has(key) && eq(result.get(key), value)) return;
-						result._set(key, value);
-						return;
-					}
-					if (!result.has(value)) return;
-					result._delete(value);
-				}, this);
+						if (!result.has(value)) return;
+						result._delete(value);
+					}, this);
+				}
 				result._release_();
 			}.bind(this));
 			this.forEach(function (value, key) {
@@ -126,15 +141,29 @@ module.exports = memoize(function (ObservableMap) {
 					return;
 				}
 				result.__onHold__ = true;
-				this.forEach(function (value, key) {
-					value = cb(value, key);
-					if (result.has(key) && eq(result.get(key), value)) return;
-					result._set(key, value);
-				});
-				result.forEach(function (value, key) {
-					if (this.has(key)) return;
-					result._delete(key);
-				}, this);
+				if (type === 'batch') {
+					if (event.set) {
+						event.set.forEach(function (value, key) {
+							result._set(key, cb(value, key));
+						});
+					}
+					if (event.deleted) {
+						event.deleted.forEach(function (value, key) {
+							if (event.set && event.set.has(key)) return;
+							result._delete(key);
+						}, this);
+					}
+				} else {
+					this.forEach(function (value, key) {
+						value = cb(value, key);
+						if (result.has(key) && eq(result.get(key), value)) return;
+						result._set(key, value);
+					});
+					result.forEach(function (value, key) {
+						if (this.has(key)) return;
+						result._delete(key);
+					}, this);
+				}
 				result._release_();
 			}.bind(this));
 			this.forEach(function (value, key) { result.$set(key, cb(value, key)); });
@@ -240,18 +269,33 @@ module.exports = memoize(function (ObservableMap) {
 					return;
 				}
 				result.__onHold__ = true;
-				result.forEach(function (value, key) {
-					if (this.has(key)) {
-						if (eq(this.get(key), value)) return;
-						result._set(key, value);
-						return;
+				if (type === 'batch') {
+					if (event.set) {
+						event.set.forEach(function (value, key) {
+							if (!values.has(key)) return;
+							result._set(key, value);
+						}, this);
 					}
-					result._delete(key);
-				}, this);
-				this.forEach(function (value, key) {
-					if (!values.has(key) || result.has(key)) return;
-					result._set(key, value);
-				}, this);
+					if (event.deleted) {
+						event.deleted.forEach(function (value, key) {
+							if (event.set && event.set.has(key)) return;
+							result._delete(key);
+						}, this);
+					}
+				} else {
+					result.forEach(function (value, key) {
+						if (this.has(key)) {
+							if (eq(this.get(key), value)) return;
+							result._set(key, value);
+							return;
+						}
+						result._delete(key);
+					}, this);
+					this.forEach(function (value, key) {
+						if (!values.has(key) || result.has(key)) return;
+						result._set(key, value);
+					}, this);
+				}
 				result._release_();
 			}.bind(this));
 			this.forEach(function (value, key) {
