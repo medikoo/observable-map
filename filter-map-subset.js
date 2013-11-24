@@ -52,7 +52,7 @@ module.exports = memoize(function (ObservableMap) {
 					result._clear();
 					return;
 				}
-				result.__onHold__ = true;
+				result._hold_ += 1;
 				if (type === 'batch') {
 					if (event.set) {
 						event.set.forEach(function (value, key) {
@@ -87,7 +87,7 @@ module.exports = memoize(function (ObservableMap) {
 						result._delete(value);
 					}, this);
 				}
-				result._release_();
+				result._hold_ -= 1;
 			}.bind(this));
 			this.forEach(function (value, key) {
 				if (cb(value, key)) result.$set(key, value);
@@ -140,7 +140,7 @@ module.exports = memoize(function (ObservableMap) {
 					result._clear();
 					return;
 				}
-				result.__onHold__ = true;
+				result._hold_ += 1;
 				if (type === 'batch') {
 					if (event.set) {
 						event.set.forEach(function (value, key) {
@@ -164,7 +164,7 @@ module.exports = memoize(function (ObservableMap) {
 						result._delete(key);
 					}, this);
 				}
-				result._release_();
+				result._hold_ -= 1;
 			}.bind(this));
 			this.forEach(function (value, key) { result.$set(key, cb(value, key)); });
 			defineProperties(result, {
@@ -179,7 +179,7 @@ module.exports = memoize(function (ObservableMap) {
 					result._set(key, nu);
 				}.bind(this)),
 				refreshAll: d(function () {
-					result.__onHold__ = true;
+					result._hold_ += 1;
 					this.forEach(function (value, key) {
 						var old = cb(value, key), nu;
 						cb.clear(value, key);
@@ -187,7 +187,7 @@ module.exports = memoize(function (ObservableMap) {
 						if (eq(old, nu)) return;
 						result._set(key, nu);
 					}, this);
-					result._release_();
+					result._hold_ -= 1;
 				}.bind(this)),
 				unref: d(function () {
 					if (disposed) return;
@@ -221,7 +221,7 @@ module.exports = memoize(function (ObservableMap) {
 							result._clear();
 							return;
 						}
-						result.__onHold__ = true;
+						result._hold_ += 1;
 						if (type === 'batch') {
 							if (event.added) {
 								event.added.forEach(function (value) {
@@ -245,7 +245,7 @@ module.exports = memoize(function (ObservableMap) {
 								result._set(key, value);
 							});
 						}
-						result._release_();
+						result._hold_ -= 1;
 					}.bind(this));
 				}
 			} else if (isIterable(values)) {
@@ -268,7 +268,7 @@ module.exports = memoize(function (ObservableMap) {
 					result._clear();
 					return;
 				}
-				result.__onHold__ = true;
+				result._hold_ += 1;
 				if (type === 'batch') {
 					if (event.set) {
 						event.set.forEach(function (value, key) {
@@ -296,7 +296,7 @@ module.exports = memoize(function (ObservableMap) {
 						result._set(key, value);
 					}, this);
 				}
-				result._release_();
+				result._hold_ -= 1;
 			}.bind(this));
 			this.forEach(function (value, key) {
 				if (values.has(key)) result.$set(key, value);

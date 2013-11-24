@@ -53,7 +53,7 @@ module.exports = memoize(function (ObservableMap) {
 						result._clear();
 						return;
 					}
-					result.__onHold__ = true;
+					result._hold_ += 1;
 					if (type === 'batch') {
 						if (event.set) {
 							event.set.forEach(function (value) {
@@ -80,7 +80,7 @@ module.exports = memoize(function (ObservableMap) {
 							result._delete(value);
 						});
 					}
-					result._release_();
+					result._hold_ -= 1;
 				});
 			} else {
 				this.on('change', listener = function (event) {
@@ -97,7 +97,7 @@ module.exports = memoize(function (ObservableMap) {
 						result._clear();
 						return;
 					}
-					result.__onHold__ = true;
+					result._hold_ += 1;
 					if (type === 'batch') {
 						if (event.set) {
 							event.set.forEach(function (value, key) {
@@ -120,7 +120,7 @@ module.exports = memoize(function (ObservableMap) {
 							result._delete(value);
 						}, this);
 					}
-					result._release_();
+					result._hold_ -= 1;
 				});
 			}
 			defineProperties(result, {

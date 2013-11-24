@@ -37,7 +37,7 @@ module.exports = memoize(function (Constructor) {
 		clear: d(function () {
 			if (!this.size) return;
 			clear.call(this);
-			if (this.__onHold__) this.__set__ = this.__deleted__ = null;
+			if (this.__hold__) this.__set__ = this.__deleted__ = null;
 			this.emit('change', { type: 'clear' });
 		}),
 		$clear: d(clear),
@@ -46,7 +46,7 @@ module.exports = memoize(function (Constructor) {
 			if (has) value = this.get(key);
 			else return false;
 			del.call(this, key);
-			if (this.__onHold__) {
+			if (this.__hold__) {
 				if (this.__set__ && this.__set__.has(key)) {
 					this.__set__.delete(key);
 				} else {
@@ -67,7 +67,7 @@ module.exports = memoize(function (Constructor) {
 				if (eq(oldValue, value)) return this;
 			}
 			set.call(this, key, value);
-			if (this.__onHold__) {
+			if (this.__hold__) {
 				if (has) {
 					if (this.__set__ && this.__set__.has(key)) this.__set__.delete(key);
 				}
@@ -90,8 +90,12 @@ module.exports = memoize(function (Constructor) {
 			return this;
 		}),
 		$set: d(set),
-		_release_: d(function () {
-			var event, set = this.__set__, deleted = this.__deleted__, key, value;
+		_hold_: d.gs(function () { return this.__hold__; }, function (hold) {
+			var event, set, deleted, key, value;
+			this.__hold__ = value;
+			if (value) return;
+			set = this.__set__;
+			deleted = this.__deleted__;
 			if (set && set.size) {
 				if (deleted && deleted.size) {
 					if ((set.size === 1) && (deleted.size === 1) &&
@@ -121,14 +125,14 @@ module.exports = memoize(function (Constructor) {
 					event = { type: 'batch', deleted: deleted };
 				}
 			}
-			this.__set__ = this.__deleted__ = this.__onHold__ = null;
+			this.__set__ = this.__deleted__ = null;
 			if (!event) return;
 			this.emit('change', event);
 		})
 	}, lazy({
-		__onHold__: d('w', function () { return null; }),
-		__set__: d('w', function () { return null; }),
-		__deleted__: d('w', function () { return null; })
+		__hold__: d('w', 0),
+		__set__: d('w', null),
+		__deleted__: d('w', null)
 	}))));
 	defineProperty(Observable.prototype, isObservableSymbol, d('', true));
 
