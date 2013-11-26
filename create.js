@@ -89,8 +89,8 @@ module.exports = memoize(function (Constructor) {
 			return this;
 		}),
 		$set: d(set),
-		_hold_: d.gs(function () { return this.__hold__; }, function (hold) {
-			var event, set, deleted, key, value;
+		_hold_: d.gs(function () { return this.__hold__; }, function (value) {
+			var event, set, deleted, key, entry;
 			this.__hold__ = value;
 			if (value) return;
 			set = this.__set__;
@@ -105,21 +105,15 @@ module.exports = memoize(function (Constructor) {
 						event = { type: 'batch', set: set, deleted: deleted };
 					}
 				} else if (set.size === 1) {
-					set.forEach(function (v, k) {
-						key = k;
-						value = v;
-					});
-					event = { type: 'set', key: key, value: value };
+					entry = set.entries().next();
+					event = { type: 'set', key: entry[0], value: entry[1] };
 				} else {
 					event = { type: 'batch', set: set };
 				}
 			} else if (deleted && deleted.size) {
 				if (deleted.size === 1) {
-					deleted.forEach(function (v, k) {
-						key = k;
-						value = v;
-					});
-					event = { type: 'delete', key: key, value: value };
+					entry = deleted.entries().next();
+					event = { type: 'delete', key: entry[0], value: entry[1] };
 				} else {
 					event = { type: 'batch', deleted: deleted };
 				}
