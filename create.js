@@ -9,7 +9,6 @@ var validFunction      = require('es5-ext/function/valid-function')
   , ee                 = require('event-emitter')
   , memoize            = require('memoizee/lib/regular')
   , validMap           = require('es6-map/valid-map')
-  , toArray            = require('es6-iterator/to-array')
   , isObservableSymbol = require('observable-value/symbol-is-observable')
 
   , defineProperty = Object.defineProperty;
@@ -99,7 +98,7 @@ module.exports = memoize(function (Constructor) {
 			if (set && set.size) {
 				if (deleted && deleted.size) {
 					if ((set.size === 1) && (deleted.size === 1) &&
-							eq(key = toArray(set.keys())[0], toArray(deleted.keys())[0])) {
+							eq(key = set.keys().next().value, deleted.keys().next().value)) {
 						event = { type: 'set', key: key, value: set.get(key),
 							oldValue: deleted.get(key) };
 					} else {
