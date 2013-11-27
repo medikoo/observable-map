@@ -10,20 +10,27 @@ var validFunction      = require('es5-ext/function/valid-function')
   , memoize            = require('memoizee/lib/regular')
   , validMap           = require('es6-map/valid-map')
   , isObservableSymbol = require('observable-value/symbol-is-observable')
+  , createReadOnly     = require('./create-read-only')
 
   , defineProperty = Object.defineProperty;
 
 module.exports = memoize(function (Constructor) {
-	var Observable, clear, del, set;
+	var Observable, clear, del, set, ReadOnly;
 
 	validFunction(Constructor);
 	validMap(Constructor.prototype);
 
+	ReadOnly = createReadOnly(Constructor);
+
 	Observable = function (/* iterable, comparator */) {
+		var comparator = arguments[1];
 		if (!(this instanceof Observable)) {
-			return new Observable(arguments[0], arguments[1]);
+			return new Observable(arguments[0], comparator);
 		}
 		Constructor.apply(this, arguments);
+		if (!this.__comparator__) {
+			defineProperty(this, '__comparator__', d('', comparator));
+		}
 	};
 	if (setPrototypeOf) setPrototypeOf(Observable, Constructor);
 
@@ -34,23 +41,45 @@ module.exports = memoize(function (Constructor) {
 	Observable.prototype = ee(Object.create(Constructor.prototype, assign({
 		constructor: d(Observable),
 		clear: d(function () {
+			var event;
 			if (!this.size) return;
+			if (this.__postponed__) {
+				event = this.__postponedEvent__;
+				if (!event) {
+					event = this.__postponedEvent__ =
+						{ deleted: new ReadOnly(this, this.__comparator__) };
+				} else {
+					this.forEach(function (value, key) {
+						if (event.set && event.set.has(key)) {
+							event.set._delete(key);
+							return;
+						}
+						if (!event.deleted) {
+							event.deleted = new ReadOnly(null, this.__comparator__);
+						}
+						event.deleted._set(key, value);
+					}, this);
+				}
+			}
 			clear.call(this);
-			if (this.__hold__) this.__set__ = this.__deleted__ = null;
-			this.emit('change', { type: 'clear' });
+			if (!this.__postponed__) this.emit('change', { type: 'clear' });
 		}),
 		$clear: d(clear),
 		delete: d(function (key) {
-			var has = this.has(key), value;
+			var has = this.has(key), value, event;
 			if (has) value = this.get(key);
 			else return false;
 			del.call(this, key);
-			if (this.__hold__) {
-				if (this.__set__ && this.__set__.has(key)) {
-					this.__set__.delete(key);
+			if (this.__postponed__) {
+				event = this.__postponedEvent__;
+				if (!event) event = this.__postponedEvent__ = {};
+				if (event.set && event.set.has(key)) {
+					event.set._delete(key);
 				} else {
-					if (!this.__deleted__) this.__deleted__ = new Constructor();
-					this.__deleted__.set(key, value);
+					if (!event.deleted) {
+						event.deleted = new ReadOnly(null, this.__comparator__);
+					}
+					event.deleted._set(key, value);
 				}
 				return true;
 			}
@@ -66,19 +95,23 @@ module.exports = memoize(function (Constructor) {
 				if (eq(oldValue, value)) return this;
 			}
 			set.call(this, key, value);
-			if (this.__hold__) {
+			if (this.__postponed__) {
+				event = this.__postponedEvent__;
+				if (!event) event = this.__postponedEvent__ = {};
 				if (has) {
-					if (this.__set__ && this.__set__.has(key)) this.__set__.delete(key);
+					if (event.set && event.set.has(key)) event.set._delete(key);
 				}
-				if (this.__deleted__ && this.__deleted__.has(key) &&
-						eq(this.__deleted__.get(key), value)) {
-					this.__deleted__.delete(key);
+				if (event.deleted && event.deleted.has(key) &&
+						eq(event.deleted.get(key), value)) {
+					event.deleted._delete(key);
 				} else {
-					if (!this.__set__) this.__set__ = new Constructor();
-					this.__set__.set(key, value);
+					if (!event.set) event.set = new ReadOnly(null, this.__comparator__);
+					event.set._set(key, value);
 					if (has) {
-						if (!this.__deleted__) this.__deleted__ = new Constructor();
-						this.__deleted__.set(key, oldValue);
+						if (!event.deleted) {
+							event.deleted = new ReadOnly(null, this.__comparator__);
+						}
+						event.deleted._set(key, oldValue);
 					}
 				}
 				return this;
@@ -89,43 +122,61 @@ module.exports = memoize(function (Constructor) {
 			return this;
 		}),
 		$set: d(set),
-		_hold_: d.gs(function () { return this.__hold__; }, function (value) {
-			var event, set, deleted, key, entry;
-			this.__hold__ = value;
+		_postponed_: d.gs(function () {
+			return this.__postponed__;
+		}, function (value) {
+			var event, key, entry;
+			this.__postponed__ = value;
 			if (value) return;
-			set = this.__set__;
-			deleted = this.__deleted__;
-			if (set && set.size) {
-				if (deleted && deleted.size) {
-					if ((set.size === 1) && (deleted.size === 1) &&
-							eq(key = set.keys().next().value, deleted.keys().next().value)) {
-						event = { type: 'set', key: key, value: set.get(key),
-							oldValue: deleted.get(key) };
+			event = this.__postponedEvent__;
+			if (!event) return;
+			if (event.set && event.set.size) {
+				if (event.deleted && event.deleted.size) {
+					if ((event.set.size === 1) && (event.deleted.size === 1) &&
+							eq(key = event.set.keys().next().value,
+								event.deleted.keys().next().value)) {
+						event.type = 'set';
+						event.key = key;
+						event.value = event.set.get(key);
+						event.oldValue = event.deleted.get(key);
+						delete event.set;
+						delete event.deleted;
 					} else {
-						event = { type: 'batch', set: set, deleted: deleted };
+						event.type = 'batch';
 					}
-				} else if (set.size === 1) {
-					entry = set.entries().next();
-					event = { type: 'set', key: entry[0], value: entry[1] };
+				} else if (event.set.size === 1) {
+					entry = event.set.entries().next();
+					event.type = 'set';
+					event.key = entry[0];
+					event.value = entry[1];
+					delete event.set;
+					delete event.deleted;
 				} else {
-					event = { type: 'batch', set: set };
+					event.type = 'batch';
+					delete event.deleted;
 				}
-			} else if (deleted && deleted.size) {
-				if (deleted.size === 1) {
-					entry = deleted.entries().next();
-					event = { type: 'delete', key: entry[0], value: entry[1] };
+			} else if (event.deleted && event.deleted.size) {
+				if (event.deleted.size === 1) {
+					entry = event.deleted.entries().next();
+					event.type = 'delete';
+					event.key = entry[0];
+					event.value = entry[1];
+					delete event.set;
+					delete event.deleted;
 				} else {
-					event = { type: 'batch', deleted: deleted };
+					event.type = 'batch';
+					delete event.set;
 				}
+			} else {
+				event = null;
 			}
-			this.__set__ = this.__deleted__ = null;
+			this.__postponedEvent__ = null;
 			if (!event) return;
 			this.emit('change', event);
 		})
 	}, lazy({
-		__hold__: d('w', 0),
-		__set__: d('w', null),
-		__deleted__: d('w', null)
+		__postponed__: d('w', 0),
+		__postponedEvent__: d('w', null)
 	}))));
 	defineProperty(Observable.prototype, isObservableSymbol, d('', true));
 
