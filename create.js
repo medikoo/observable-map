@@ -104,16 +104,15 @@ module.exports = memoize(function (Constructor) {
 				if (event.deleted && event.deleted.has(key) &&
 						eq(event.deleted.get(key), value)) {
 					event.deleted._delete(key);
-				} else {
-					if (!event.set) event.set = new ReadOnly(null, this.__comparator__);
-					event.set._set(key, value);
-					if (has) {
-						if (!event.deleted) {
-							event.deleted = new ReadOnly(null, this.__comparator__);
-						}
-						event.deleted._set(key, oldValue);
-					}
+					return this;
 				}
+				if (!event.set) event.set = new ReadOnly(null, this.__comparator__);
+				event.set._set(key, value);
+				if (!has) return this;
+				if (!event.deleted) {
+					event.deleted = new ReadOnly(null, this.__comparator__);
+				}
+				event.deleted._set(key, oldValue);
 				return this;
 			}
 			event = { type: 'set', key: key, value: value };
