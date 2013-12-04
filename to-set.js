@@ -3,7 +3,6 @@
 var eIndexOf           = require('es5-ext/array/#/e-index-of')
   , i                  = require('es5-ext/function/i')
   , invoke             = require('es5-ext/function/invoke')
-  , validFunction      = require('es5-ext/function/valid-function')
   , d                  = require('d/d')
   , memoize            = require('memoizee/lib/regular')
   , memMethods         = require('memoizee/lib/d')(memoize)
@@ -19,11 +18,10 @@ require('memoizee/lib/ext/ref-counter');
 require('memoizee/lib/ext/resolvers');
 require('memoizee/lib/ext/dispose');
 
-module.exports = memoize(function (ObservableMap) {
-	validFunction(ObservableMap);
-	validObservableMap(ObservableMap.prototype);
+module.exports = memoize(function (prototype) {
+	validObservableMap(prototype);
 
-	defineProperties(ObservableMap.prototype, memMethods({
+	return defineProperties(prototype, memMethods({
 		toSet: d(function (kind) {
 			var result, disposed, listener, registry, inClear;
 			result = new ReadOnly((kind === 'value') ? this.values() : this.keys());
@@ -139,6 +137,4 @@ module.exports = memoize(function (ObservableMap) {
 			return (String(kind) === 'key') ? 'key' : 'value';
 		}], refCounter: true, dispose: invokeDispose })
 	}));
-
-	return ObservableMap;
 });

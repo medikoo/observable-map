@@ -23,14 +23,13 @@ var aFrom              = require('es5-ext/array/from')
 require('memoizee/lib/ext/ref-counter');
 require('memoizee/lib/ext/dispose');
 
-module.exports = memoize(function (ObservableMap) {
+module.exports = memoize(function (prototype) {
 	var ReadOnly;
 
-	validFunction(ObservableMap);
-	validObservableMap(ObservableMap.prototype);
-	ReadOnly = createReadOnly(ObservableMap);
+	validObservableMap(prototype);
+	ReadOnly = createReadOnly(prototype.constructor);
 
-	defineProperties(ObservableMap.prototype, memMethods({
+	return defineProperties(prototype, memMethods({
 		filter: d(function (callbackFn/*, thisArg*/) {
 			var result, thisArg, cb, disposed, listener;
 			(value(this) && callable(callbackFn));
@@ -315,6 +314,4 @@ module.exports = memoize(function (ObservableMap) {
 			return result;
 		}, { length: 1, refCounter: true, dispose: invokeDispose })
 	}));
-
-	return ObservableMap;
 });

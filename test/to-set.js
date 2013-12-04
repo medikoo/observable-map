@@ -1,17 +1,16 @@
 'use strict';
 
 var toArray = require('es6-iterator/to-array')
-  , isSet   = require('observable-set/is-observable-set')
-
-  , isArray = Array.isArray;
+  , isSet   = require('observable-set/is-observable-set');
 
 module.exports = exports = function (t, a) {
-	exports.tests(t(require('../create')(require('es6-map'))), a);
+	exports.tests(t(require('../create')(require('es6-map'))
+		.prototype).constructor, a);
 };
 
 exports.tests = function (ObservableMap, a) {
-	var map, set, x = {}, y, z, w, adds = 0, deletes = 0, clears = 0, others = 0
-	  , listener, compare;
+	var map, set, x = {}, y, z, adds = 0, deletes = 0, clears = 0, others = 0
+	  , listener;
 
 	x = ['raz', 'one'];
 	y = ['dwa', 'two'];

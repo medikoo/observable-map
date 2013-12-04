@@ -4,7 +4,8 @@ var toArray       = require('es6-iterator/to-array')
   , ObservableSet = require('observable-set');
 
 module.exports = exports = function (t, a) {
-	exports.tests(t(require('../create')(require('es6-map'))), a);
+	exports.tests(t(require('../create')(require('es6-map'))
+		.prototype).constructor, a);
 };
 
 exports.tests = function (ObservableMap, a) {
