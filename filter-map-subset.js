@@ -2,7 +2,6 @@
 
 var aFrom              = require('es5-ext/array/from')
   , invoke             = require('es5-ext/function/invoke')
-  , validFunction      = require('es5-ext/function/valid-function')
   , eq                 = require('es5-ext/object/eq')
   , callable           = require('es5-ext/object/valid-callable')
   , value              = require('es5-ext/object/valid-value')
