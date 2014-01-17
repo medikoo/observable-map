@@ -91,11 +91,9 @@ module.exports = memoize(function (prototype) {
 				if (cb(value, key)) result.$set(key, value);
 			});
 			defineProperties(result, {
-				refresh: d(function (key) {
-					var value;
-					if (!this.has(key)) return;
-					value = this.get(key);
+				refresh: d(function (key, value) {
 					cb.clear(value, key);
+					if (!this.has(key) || !eq(this.get(key), value)) return;
 					if (cb(value, key)) result._set(key, value);
 					else result._delete(key);
 				}.bind(this)),
@@ -166,10 +164,12 @@ module.exports = memoize(function (prototype) {
 			}.bind(this));
 			this.forEach(function (value, key) { result.$set(key, cb(value, key)); });
 			defineProperties(result, {
-				refresh: d(function (key) {
-					var value, old, nu;
-					if (!this.has(key)) return;
-					value = this.get(key);
+				refresh: d(function (key, value) {
+					var old, nu;
+					if (!this.has(key) || !eq(this.get(key), value)) {
+						cb.clear(value, key);
+						return;
+					}
 					old = cb(value, key);
 					cb.clear(value, key);
 					nu = cb(value, key);

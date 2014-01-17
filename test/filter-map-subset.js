@@ -47,7 +47,7 @@ exports.tests = function (ObservableMap, a) {
 	a.deep([sets, deletes, clears, others], [1, 0, 0, 0], "Event");
 
 	a.h2("Refresh");
-	map2.refresh(y[0]);
+	map2.refresh(y[0], y[1]);
 	a.deep(toArray(map2), [w]);
 	a.deep([sets, deletes, clears, others], [1, 1, 0, 0], "Event");
 
@@ -109,7 +109,7 @@ exports.tests = function (ObservableMap, a) {
 	a.deep([sets, deletes, clears, others], [1, 0, 0, 0], "Event");
 
 	a.h2("Refresh");
-	map2.refresh(y[0]);
+	map2.refresh(y[0], y[1]);
 	a.deep(toArray(map2), [['raz', 24], ['dwa', 88], ['trzy', 108],
 		['cztery', 66]]);
 	a.deep([sets, deletes, clears, others], [2, 0, 0, 0], "Event");
