@@ -1,7 +1,7 @@
 'use strict';
 
 var eIndexOf           = require('es5-ext/array/#/e-index-of')
-  , i                  = require('es5-ext/function/i')
+  , identity           = require('es5-ext/function/identity')
   , invoke             = require('es5-ext/function/invoke')
   , d                  = require('d/d')
   , memoize            = require('memoizee/lib/regular')
@@ -26,10 +26,13 @@ module.exports = memoize(function (prototype) {
 			var result, disposed, listener, registry, inClear;
 			result = new ReadOnly((kind === 'value') ? this.values() : this.keys());
 			if (kind === 'value') {
-				registry = memoize(i, { refCounter: true, dispose: function (val) {
-					if (inClear) return;
-					result._delete(val);
-				} });
+				registry = memoize(identity, {
+					refCounter: true,
+					dispose: function (val) {
+						if (inClear) return;
+						result._delete(val);
+					}
+				});
 				result.forEach(registry);
 				this.on('change', listener = function (event) {
 					var type = event.type, valid;
