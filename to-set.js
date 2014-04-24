@@ -3,7 +3,7 @@
 var eIndexOf           = require('es5-ext/array/#/e-index-of')
   , identity           = require('es5-ext/function/identity')
   , invoke             = require('es5-ext/function/invoke')
-  , d                  = require('d/d')
+  , d                  = require('d')
   , memoize            = require('memoizee/lib/regular')
   , memMethods         = require('memoizee/lib/d')(memoize)
   , ReadOnly           = require('observable-set/create-read-only')(

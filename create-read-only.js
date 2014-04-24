@@ -1,7 +1,7 @@
 'use strict';
 
 var validFunction = require('es5-ext/function/valid-function')
-  , d             = require('d/d')
+  , d             = require('d')
   , memoize       = require('memoizee/lib/regular')
   , validMap      = require('es6-map/valid-map')
 
