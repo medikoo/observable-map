@@ -1,6 +1,6 @@
 'use strict';
 
-var ee              = require('event-emitter/lib/core')
+var ee              = require('event-emitter')
   , ObservableValue = require('observable-value/value')
   , Map             = require('es6-map')
   , ObservableMap   = require('../create')(Map);
