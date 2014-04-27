@@ -4,24 +4,22 @@ var eIndexOf           = require('es5-ext/array/#/e-index-of')
   , identity           = require('es5-ext/function/identity')
   , invoke             = require('es5-ext/function/invoke')
   , d                  = require('d')
-  , memoize            = require('memoizee/lib/regular')
-  , memMethods         = require('memoizee/lib/d')(memoize)
-  , ReadOnly           = require('observable-set/create-read-only')(
-	require('observable-set')
-)
+  , memoize            = require('memoizee/plain')
+  , memoizeMethods     = require('memoizee/methods-plain')
+  , getNormalizer      = require('memoizee/normalizers/get-1')
+  , ReadOnly           = require('observable-set/create-read-only')(require('observable-set'))
   , validObservableMap = require('./valid-observable-map')
 
   , defineProperties = Object.defineProperties
   , invokeDispose = invoke('_dispose');
 
-require('memoizee/lib/ext/ref-counter');
-require('memoizee/lib/ext/resolvers');
-require('memoizee/lib/ext/dispose');
+require('memoizee/ext/ref-counter');
+require('memoizee/ext/dispose');
 
 module.exports = memoize(function (prototype) {
 	validObservableMap(prototype);
 
-	return defineProperties(prototype, memMethods({
+	return defineProperties(prototype, memoizeMethods({
 		toSet: d(function (kind) {
 			var result, disposed, listener, registry, inClear;
 			result = new ReadOnly((kind === 'value') ? this.values() : this.keys());
@@ -31,25 +29,26 @@ module.exports = memoize(function (prototype) {
 					dispose: function (val) {
 						if (inClear) return;
 						result._delete(val);
-					}
+					},
+					normalizer: getNormalizer()
 				});
 				result.forEach(registry);
 				this.on('change', listener = function (event) {
 					var type = event.type, valid;
 					if (type === 'set') {
 						if (event.hasOwnProperty('oldValue')) {
-							registry.clearRef(event.oldValue);
+							registry.deleteRef(event.oldValue);
 						}
 						result._add(registry(event.value));
 						return;
 					}
 					if (type === 'delete') {
-						registry.clearRef(event.value);
+						registry.deleteRef(event.value);
 						return;
 					}
 					if (type === 'clear') {
 						inClear = true;
-						registry.clearAll();
+						registry.clear();
 						inClear = false;
 						result._clear();
 						return;
@@ -63,12 +62,12 @@ module.exports = memoize(function (prototype) {
 						}
 						if (event.deleted) {
 							event.deleted.forEach(function (value) {
-								registry.clearRef(value);
+								registry.deleteRef(value);
 							});
 						}
 					} else {
 						inClear = true;
-						registry.clearAll();
+						registry.clear();
 						inClear = false;
 						valid = [];
 						this.forEach(function (value, key) {
@@ -127,11 +126,11 @@ module.exports = memoize(function (prototype) {
 			defineProperties(result, {
 				unref: d(function () {
 					if (disposed) return;
-					this.toSet.clearRef(kind);
+					this.toSet.deleteRef(kind);
 				}.bind(this)),
 				_dispose: d(function () {
 					this.off('change', listener);
-					if (registry) registry.clearAll();
+					if (registry) registry.clear();
 					disposed = true;
 				}.bind(this))
 			});
@@ -140,4 +139,4 @@ module.exports = memoize(function (prototype) {
 			return (String(kind) === 'key') ? 'key' : 'value';
 		}], refCounter: true, dispose: invokeDispose })
 	}));
-});
+}, { normalizer: getNormalizer() });
