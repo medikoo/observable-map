@@ -1,6 +1,6 @@
 'use strict';
 
-var toArray = require('es6-iterator/to-array')
+var toArray = require('es5-ext/array/to-array')
   , isSet   = require('observable-set/is-observable-set');
 
 module.exports = exports = function (t, a) {

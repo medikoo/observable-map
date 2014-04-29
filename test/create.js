@@ -3,7 +3,7 @@
 var remove  = require('es5-ext/array/#/remove')
   , Map     = require('es6-map')
   , isMap   = require('es6-map/is-map')
-  , toArray = require('es6-iterator/to-array');
+  , toArray = require('es5-ext/array/to-array');
 
 module.exports = function (t, a) {
 	var ObservableMap = t(Map)

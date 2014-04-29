@@ -2,7 +2,7 @@
 
 var Map     = require('es6-map')
   , isMap   = require('es6-map/is-map')
-  , toArray = require('es6-iterator/to-array')
+  , toArray = require('es5-ext/array/to-array')
 
   , create = Object.create;
 
