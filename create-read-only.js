@@ -1,9 +1,11 @@
 'use strict';
 
-var validFunction = require('es5-ext/function/valid-function')
-  , d             = require('d')
-  , memoize       = require('memoizee/plain')
-  , validMap      = require('es6-map/valid-map')
+var validFunction  = require('es5-ext/function/valid-function')
+  , mixin          = require('es5-ext/object/mixin-prototypes')
+  , setPrototypeOf = require('es5-ext/object/set-prototype-of')
+  , d              = require('d')
+  , memoize        = require('memoizee/plain')
+  , validMap       = require('es6-map/valid-map')
 
   , create = Object.create, defineProperties = Object.defineProperties
   , getDescriptor = Object.getOwnPropertyDescriptor
@@ -19,8 +21,12 @@ module.exports = memoize(function (Constructor) {
 	validMap(Constructor.prototype);
 
 	ReadOnly = function (/* iterable, comparator */) {
+		var map;
 		if (!(this instanceof ReadOnly)) throw new TypeError('Constructor requires \'new\'');
-		Constructor.apply(this, arguments);
+		map = new Constructor(arguments[0], arguments[1]);
+		if (setPrototypeOf) setPrototypeOf(map, getPrototypeOf(this));
+		else mixin(map, getPrototypeOf(this));
+		return map;
 	};
 
 	ReadOnly.prototype = create(Constructor.prototype, {

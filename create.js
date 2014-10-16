@@ -3,6 +3,7 @@
 var validFunction      = require('es5-ext/function/valid-function')
   , assign             = require('es5-ext/object/assign')
   , eq                 = require('es5-ext/object/eq')
+  , mixin              = require('es5-ext/object/mixin-prototypes')
   , setPrototypeOf     = require('es5-ext/object/set-prototype-of')
   , d                  = require('d')
   , lazy               = require('d/lazy')
@@ -12,7 +13,7 @@ var validFunction      = require('es5-ext/function/valid-function')
   , isObservableSymbol = require('observable-value/symbol-is-observable')
   , createReadOnly     = require('./create-read-only')
 
-  , defineProperty = Object.defineProperty;
+  , defineProperty = Object.defineProperty, getPrototypeOf = Object.getPrototypeOf;
 
 module.exports = memoize(function (Constructor) {
 	var Observable, clear, del, set, ReadOnly;
@@ -23,12 +24,13 @@ module.exports = memoize(function (Constructor) {
 	ReadOnly = createReadOnly(Constructor);
 
 	Observable = function (/* iterable, comparator */) {
-		var comparator = arguments[1];
+		var comparator = arguments[1], map;
 		if (!(this instanceof Observable)) throw new TypeError('Constructor requires \'new\'');
-		Constructor.apply(this, arguments);
-		if (!this.__comparator__) {
-			defineProperty(this, '__comparator__', d('', comparator));
-		}
+		map = new Constructor(arguments[0], arguments[1]);
+		if (setPrototypeOf) setPrototypeOf(map, getPrototypeOf(this));
+		else mixin(map, getPrototypeOf(this));
+		if (!map.__comparator__) defineProperty(map, '__comparator__', d('', comparator));
+		return map;
 	};
 	if (setPrototypeOf) setPrototypeOf(Observable, Constructor);
 
