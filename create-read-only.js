@@ -19,9 +19,7 @@ module.exports = memoize(function (Constructor) {
 	validMap(Constructor.prototype);
 
 	ReadOnly = function (/* iterable, comparator */) {
-		if (!(this instanceof ReadOnly)) {
-			return new ReadOnly(arguments[0], arguments[1]);
-		}
+		if (!(this instanceof ReadOnly)) throw new TypeError('Constructor requires \'new\'');
 		Constructor.apply(this, arguments);
 	};
 
