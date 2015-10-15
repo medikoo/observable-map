@@ -1,6 +1,6 @@
 {
   "name": "observable-map",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Configure observable map collections",
   "author": "Mariusz Nowak <medyk@medikoo.com> (http://www.medikoo.com/)",
   "keywords": [
