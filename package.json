@@ -1,6 +1,6 @@
 {
   "name": "observable-map",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Configure observable map collections",
   "author": "Mariusz Nowak <medyk@medikoo.com> (http://www.medikoo.com/)",
   "keywords": [
@@ -24,8 +24,8 @@
     "es6-set": "^0.1.2",
     "event-emitter": "^0.3.4",
     "memoizee": "^0.3.9",
-    "observable-set": "0.0.3",
-    "observable-value": "0.0.4"
+    "observable-set": "0.0.4",
+    "observable-value": "0.0.5"
   },
   "devDependencies": {
     "tad": "^0.2.4",
